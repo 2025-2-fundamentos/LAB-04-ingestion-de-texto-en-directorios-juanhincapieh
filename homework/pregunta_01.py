@@ -71,3 +71,43 @@ def pregunta_01():
 
 
     """
+
+    import os
+    import pandas as pd
+
+    def buildDataset(splitName):
+        baseDir = os.path.join("files/input", splitName)
+        rows = []
+
+        for sentiment in ["negative", "neutral", "positive"]:
+            sentimentDir = os.path.join(baseDir, sentiment)
+
+            if not os.path.isdir(sentimentDir):
+                continue
+
+            fileNames = sorted(f for f in os.listdir(sentimentDir) if f.endswith(".txt"))
+
+            for fileName in fileNames:
+                filePath = os.path.join(sentimentDir, fileName)
+
+                with open(filePath, "r", encoding="utf-8") as f:
+                    text = " ".join(line.strip() for line in f.readlines())
+
+                rows.append({"phrase": text, "target": sentiment})
+
+        df = pd.DataFrame(rows, columns=["phrase", "target"])
+
+        outputDir = "files/output"
+        os.makedirs(outputDir, exist_ok=True)
+
+        outputPath = os.path.join(outputDir, f"{splitName}_dataset.csv")
+        df.to_csv(outputPath, index=False)
+        
+        return df
+
+    def buildDatasets():
+        trainDf = buildDataset("train")
+        testDf = buildDataset("test")
+        return trainDf, testDf
+    
+    buildDatasets()
